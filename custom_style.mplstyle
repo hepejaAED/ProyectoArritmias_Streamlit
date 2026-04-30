@@ -1,0 +1,55 @@
+# ============================================================
+# custom_style.mplstyle
+# Estilo consistente para Lab 1 – VAD
+# Uso: plt.style.use("custom_style.mplstyle")
+# ============================================================
+
+# --- Figura ---
+figure.facecolor        : white
+figure.dpi              : 150
+figure.titlesize        : 13
+figure.titleweight      : bold
+
+# --- Ejes ---
+axes.facecolor          : F8F9FA
+axes.edgecolor          : cccccc
+axes.linewidth          : 0.8
+axes.labelcolor         : 1a1a1a
+axes.labelsize          : 9
+axes.titlesize          : 10
+axes.titlepad           : 8
+axes.titleweight        : normal
+axes.spines.top         : False
+axes.spines.right       : False
+axes.prop_cycle         : cycler('color', ['2196F3', 'F44336', '4CAF50', 'FF9800', '9C27B0'])
+
+# --- Grid ---
+axes.grid               : True
+grid.color              : cccccc
+grid.linewidth          : 0.5
+grid.linestyle          : --
+grid.alpha              : 0.6
+
+# --- Ticks ---
+xtick.color             : 1a1a1a
+ytick.color             : 1a1a1a
+xtick.labelsize         : 8
+ytick.labelsize         : 8
+xtick.direction         : out
+ytick.direction         : out
+xtick.major.size        : 3
+ytick.major.size        : 3
+
+# --- Leyenda ---
+legend.framealpha       : 0.8
+legend.edgecolor        : cccccc
+legend.fontsize         : 8
+legend.title_fontsize   : 8
+
+# --- Líneas ---
+lines.linewidth         : 1.6
+lines.markersize        : 5
+
+# --- Fuente ---
+font.family             : sans-serif
+font.size               : 9

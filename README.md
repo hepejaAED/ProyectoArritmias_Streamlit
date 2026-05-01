@@ -17,15 +17,16 @@ proyecto-arritmias/
 │
 ├── src/                    # lógica de la app
 │   ├── __init__.py
+│   ├── utils.py
 │   ├── data_loader.py
 │   ├── analysis.py
 │   ├── model.py
 │   └── visualizations.py
 │
-├── models/
-│   └── best_model.pkl
-│
-└── requirements.txt
+└── models/
+│   ├── best_model.pkl
+│   └── threshold.json
+
 ```
 
 ## Flujo de la app

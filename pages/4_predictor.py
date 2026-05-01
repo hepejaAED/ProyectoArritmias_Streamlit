@@ -13,14 +13,14 @@ model = load_model(MODEL_PATH)
 # ==============================
 # CARGAR THRESHOLD
 # ==============================
-st.sidebar.header("⚙️ Threshold")
+st.sidebar.header("Threshold")
 
 # cargar valor actual del json
 threshold = load_threshold()
 
 # slider sincronizado
 new_threshold = st.sidebar.slider(
-    "Ajustar threshold",
+    "Threshold de clasificación",
     0.0, 1.0,
     value=threshold,
     step=0.01
@@ -49,8 +49,29 @@ X_cols = df.drop(columns=["AV", "PACIENTES"]).columns
 inputs = {}
 
 with st.form("predict_form"):
+
     for col in X_cols:
-        inputs[col] = st.number_input(col, value=0.0)
+
+        if col.upper() == "SEXO":
+            sexo = st.selectbox(
+                "SEXO",
+                options=["Hombre", "Mujer"]
+            )
+            inputs[col] = 1 if sexo == "Hombre" else 2
+
+        elif col.upper() == "EDAD":
+            inputs[col] = st.number_input(
+                "EDAD",
+                value=int(df[col].iloc[0]),
+                step=1,
+                format="%d"
+            )
+
+        else:
+            inputs[col] = st.number_input(
+                col,
+                value=float(df[col].iloc[0])
+            )
 
     submit = st.form_submit_button("Predecir")
 
@@ -65,4 +86,7 @@ if submit:
 
     st.subheader("Resultado")
     st.write(f"Probabilidad: **{prob:.3f}**")
-    st.write(f"Predicción: **{pred}**")
+    if pred == 1:
+        st.write("Predicción: **AV presente**")
+    else:
+        st.write("Predicción: **AV ausente**")

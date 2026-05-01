@@ -49,7 +49,7 @@ model = load_model(MODEL_PATH)
 # ==============================
 # SIDEBAR
 # ==============================
-st.sidebar.header("⚙️ Configuración")
+st.sidebar.header("Threshold")
 
 threshold = st.sidebar.slider(
     "Threshold de clasificación",

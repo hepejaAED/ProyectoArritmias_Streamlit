@@ -9,18 +9,20 @@ from src.data_loader import (
     split_by_group
 )
 
+
+
 st.set_page_config(
     page_title="Arritmias - Inicio",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 st.title("Análisis de Arritmias Ventriculares")
 st.markdown("---")
 
 # Cargar datos
 @st.cache_data # Para recargar la página de manera innecesaria
 def load_dataset():
+    
     return load_data("data/Arritmias.csv")
 
 try:

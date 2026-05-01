@@ -5,16 +5,26 @@
 
 ```
 proyecto-arritmias/
-├── app.py                 # main
+├── app.py                  # router principal (home)
+├── pages/                  # páginas de la app
+│   ├── 1_analisis_univariante.py
+│   ├── 2_analisis_multivariante.py
+│   ├── 3_modelo.py
+│   └── 4_predictor.py
+│
 ├── data/
 │   └── Arritmias.csv
-├── src/
-│   ├── data_loader.py     # cargar y preprocesar
-│   ├── analysis.py        # análisis exploratorio
-│   ├── model.py           # entrenamiento
-│   └── visualizations.py  # gráficas reutilizables
+│
+├── src/                    # lógica de la app
+│   ├── __init__.py
+│   ├── data_loader.py
+│   ├── analysis.py
+│   ├── model.py
+│   └── visualizations.py
+│
 ├── models/
-│   └── best_model.pkl     # modelo entrenado
+│   └── best_model.pkl
+│
 └── requirements.txt
 ```
 

@@ -2,19 +2,29 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
+import json
 
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve, confusion_matrix, roc_auc_score
+from sklearn.metrics import (
+    roc_curve,
+    confusion_matrix,
+    roc_auc_score,
+    accuracy_score,
+    f1_score,
+    ConfusionMatrixDisplay
+)
+from src.utils import load_threshold, save_threshold
 
 from src.data_loader import load_data, get_marker_cols
 from src.model import load_model
 
 st.set_page_config(page_title="Modelo", layout="wide")
 
-st.title("🤖 Análisis del modelo entrenado")
+st.title("Análisis del modelo entrenado")
 st.markdown("---")
 
+st.markdown(
+    "Modelo de clasificación (logistic regression) para predecir arritmias ventriculares (AV)."
+)
 
 # ==============================
 # CARGAR DATOS
@@ -27,110 +37,122 @@ df = load_dataset()
 
 marker_cols = get_marker_cols(df)
 
-X = df.drop(columns=["AV","PACIENTES"])
+X = df.drop(columns=["AV", "PACIENTES"])
 y = df["AV"]
 
-
 # ==============================
-# CARGAR MODELO
+# MODELO
 # ==============================
 MODEL_PATH = "models/best_model.pkl"
-
 model = load_model(MODEL_PATH)
 
-
 # ==============================
-# THRESHOLD CONTROL
+# SIDEBAR
 # ==============================
 st.sidebar.header("⚙️ Configuración")
 
 threshold = st.sidebar.slider(
     "Threshold de clasificación",
-    0.0, 1.0, 0.5, 0.01
+    0.0, 1.0,
+    value=load_threshold(),
+    step=0.01
 )
 
-
+save_threshold(threshold)
 # ==============================
 # PREDICCIÓN
 # ==============================
 y_prob = model.predict_proba(X)[:, 1]
 y_pred = (y_prob >= threshold).astype(int)
 
-
 # ==============================
 # MÉTRICAS
 # ==============================
 auc = roc_auc_score(y, y_prob)
+acc = accuracy_score(y, y_pred)
+f1 = f1_score(y, y_pred)
+
 cm = confusion_matrix(y, y_pred)
-
-st.header("📊 Resultados del modelo")
-
-col1, col2, col3 = st.columns(3)
-
 tn, fp, fn, tp = cm.ravel()
 
-with col1:
+sens = tp / (tp + fn) if (tp + fn) > 0 else 0
+spec = tn / (tn + fp) if (tn + fp) > 0 else 0
+
+st.header("Resultados del modelo")
+
+c1, c2, c3, c4,c5,c6 = st.columns(6)
+with c1:
     st.metric("AUC", f"{auc:.3f}")
+with c2:
+    st.metric("Threshold", f"{threshold:.2f}")
+with c3:
+    st.metric("F1-score", f"{f1:.3f}")
+with c4:
+    st.metric("Accuracy", f"{acc:.3f}")
+with c5:
+    st.metric("Sensibilidad", f"{sens:.3f}")
+with c6:
+    st.metric("Especificidad", f"{spec:.3f}")
 
-with col2:
-    st.metric("Sensibilidad", f"{tp/(tp+fn):.3f}" if (tp+fn)>0 else 0)
+st.markdown("---")
 
-with col3:
-    st.metric("Especificidad", f"{tn/(tn+fp):.3f}" if (tn+fp)>0 else 0)
-
-
+c1, c2 = st.columns(2)
 # ==============================
-# ROC CURVE
+# ROC
 # ==============================
-st.subheader("📈 Curva ROC")
+with c1:
+    st.subheader("Curva ROC")
 
-fpr, tpr, _ = roc_curve(y, y_prob)
+    fpr, tpr, thresholds = roc_curve(y, y_prob)
 
-fig, ax = plt.subplots()
-ax.plot(fpr, tpr, label=f"AUC = {auc:.3f}")
-ax.plot([0,1],[0,1],"--")
+    idx = np.argmin(np.abs(thresholds - threshold))
+    fpr_point, tpr_point = fpr[idx], tpr[idx]
 
-ax.set_xlabel("FPR")
-ax.set_ylabel("TPR")
-ax.legend()
+    fig, ax = plt.subplots()
 
-st.pyplot(fig)
+    ax.plot(fpr, tpr, label=f"AUC = {auc:.3f}")
+    ax.plot([0, 1], [0, 1], "--", linewidth=1)
+    ax.scatter(fpr_point, tpr_point, color="red", s=80)
 
+    ax.set_xlabel("FPR")
+    ax.set_ylabel("TPR")
+    ax.legend()
+
+    st.pyplot(fig)
+    plt.close(fig)
 
 # ==============================
 # MATRIZ DE CONFUSIÓN
 # ==============================
-st.subheader("📊 Matriz de confusión (threshold ajustado)")
+with c2:
+    st.subheader("Matriz de confusión")
 
-st.write(pd.DataFrame(
-    cm,
-    index=["Real 0", "Real 1"],
-    columns=["Pred 0", "Pred 1"]
-))
+    fig, ax = plt.subplots()
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["No AV", "AV"])
+    disp.plot(ax=ax, cmap="Blues", colorbar=False)
 
+    st.pyplot(fig)
+    plt.close(fig)
 
 # ==============================
-# SHAP (opcional pero potente)
+# SHAP
 # ==============================
-st.subheader("🔍 Interpretabilidad (SHAP)")
+st.subheader("Interpretabilidad (SHAP)")
 
-try:
-    import shap
+import shap
 
-    explainer = shap.Explainer(model.named_steps["model"])
-    X_scaled = model.named_steps["scaler"].transform(X)
+model.fit(X, y)
+X_transformed = model.named_steps["scaler"].transform(X)
 
-    shap_values = explainer(X_scaled)
+if hasattr(model.named_steps["model"], "coef_"):
+    explainer = shap.LinearExplainer(model.named_steps["model"], X_transformed)
+else:
+    explainer = shap.TreeExplainer(model.named_steps["model"])
 
-    st.write("Top features (resumen)")
+shap_values = explainer(X_transformed)
 
-    shap_summary = pd.DataFrame(
-        np.abs(shap_values.values).mean(axis=0),
-        index=marker_cols,
-        columns=["importance"]
-    ).sort_values("importance", ascending=False)
+fig = plt.figure()
+shap.summary_plot(shap_values, X, feature_names=X.columns, show=False)
 
-    st.dataframe(shap_summary)
-
-except Exception as e:
-    st.warning(f"SHAP no disponible: {e}")
+st.pyplot(fig)
+plt.close(fig)

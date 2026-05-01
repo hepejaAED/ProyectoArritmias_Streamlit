@@ -42,7 +42,7 @@ class ArrimiaClassifier:
             ])
         else:
             raise ValueError("model_type debe ser 'logistic' o 'random_forest'")
-    
+
     def get_grid_params(self, model_type='logistic'):
         """Retorna parámetros para GridSearchCV"""
         if model_type == 'logistic':
@@ -100,7 +100,8 @@ class ArrimiaClassifier:
             self.best_model,
             X, y,
             cv=cv,
-            scoring=["roc_auc", "accuracy", "precision", "recall", "f1"]
+            scoring=["roc_auc", "accuracy", "precision", "recall", "f1"],
+            return_train_score=True
         )
         
         return {
@@ -238,3 +239,10 @@ def get_prediction_explanation(y_prob, threshold=0.5):
         'confidence': confidence,
         'prob_arritmia': prob_arritmia
     }
+
+
+
+def load_model(filepath):
+    import joblib
+    return joblib.load(filepath)
+

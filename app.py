@@ -161,3 +161,4 @@ with col2:
         - Significativos: {sum(1 for p in p_values.values() if p < 0.05)}
         """
     )
+

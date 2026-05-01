@@ -17,6 +17,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 st.title("Análisis de Arritmias Ventriculares")
+
+st.markdown("Autores: Javier Herrero Pérez, José Aguilar Milla")
 st.markdown("---")
 
 # Cargar datos
